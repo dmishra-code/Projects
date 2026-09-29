@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive pathfinding visualizer comparing breadth-first search and depth-first search on a grid.">
+  <meta name="theme-color" content="#0e1116">
+  <meta name="color-scheme" content="dark">
+  <title>Pathfinder: BFS and DFS Visualizer</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23151a22'/%3E%3Cpath d='M9 23h9V9h5' fill='none' stroke='%23ffd75e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='9' cy='23' r='3.6' fill='%2334d399'/%3E%3Ccircle cx='23' cy='9' r='3.6' fill='%23fb5c73'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1 class="brand">Pathfinder</h1>
+      <p class="tagline">Watch breadth-first and depth-first search explore a grid, one cell at a time.</p>
+    </header>
+
+    <main class="layout">
+      <section class="stage" aria-label="Pathfinding grid">
+        <div class="board" id="board" role="group" aria-label="Pathfinding grid"></div>
+        <p class="board-hint">Click and drag to draw walls. Drag a wall to erase it, or right-click. Drag the green and red nodes to move them.</p>
+      </section>
+
+      <aside class="panel" aria-label="Controls and results">
+        <section class="group">
+          <label class="field-label" for="algorithm">Algorithm</label>
+          <select id="algorithm" class="select">
+            <option value="bfs" selected>Breadth-first search (BFS)</option>
+            <option value="dfs">Depth-first search (DFS)</option>
+          </select>
+          <p class="algo-description" id="algo-description"></p>
+        </section>
+
+        <section class="group">
+          <div class="field-row">
+            <label class="field-label" for="speed">Animation speed</label>
+            <output class="speed-value" id="speed-value" for="speed">Medium</output>
+          </div>
+          <input type="range" id="speed" min="0" max="2" step="1" value="1">
+          <div class="speed-scale" aria-hidden="true">
+            <span>Slow</span>
+            <span>Medium</span>
+            <span>Fast</span>
+          </div>
+        </section>
+
+        <section class="group actions">
+          <button type="button" class="btn btn-primary" id="visualize">Visualize</button>
+          <div class="actions-row">
+            <button type="button" class="btn" id="clear-path">Clear path</button>
+            <button type="button" class="btn" id="reset-grid">Reset grid</button>
+          </div>
+        </section>
+
+        <section class="group">
+          <h2 class="group-title">Results</h2>
+          <dl class="metrics">
+            <div class="metric">
+              <dt>Nodes visited</dt>
+              <dd id="metric-visited">0</dd>
+              <span class="metric-note">Cells expanded</span>
+            </div>
+            <div class="metric">
+              <dt>Path length</dt>
+              <dd id="metric-path">—</dd>
+              <span class="metric-note" id="metric-path-note">Steps, start to target</span>
+            </div>
+          </dl>
+          <p class="status" id="status" role="status" aria-live="polite" data-tone="info"></p>
+        </section>
+
+        <section class="group">
+          <h2 class="group-title">Last run on this grid</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th scope="col">Algorithm</th>
+                <th scope="col">Visited</th>
+                <th scope="col">Path</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-compare="bfs">
+                <th scope="row">BFS</th>
+                <td class="cmp-visited">—</td>
+                <td class="cmp-path">—</td>
+              </tr>
+              <tr data-compare="dfs">
+                <th scope="row">DFS</th>
+                <td class="cmp-visited">—</td>
+                <td class="cmp-path">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="group">
+          <h2 class="group-title">Legend</h2>
+          <ul class="legend">
+            <li><span class="swatch swatch-start"></span>Start</li>
+            <li><span class="swatch swatch-target"></span>Target</li>
+            <li><span class="swatch swatch-empty"></span>Unvisited</li>
+            <li><span class="swatch swatch-wall"></span>Wall</li>
+            <li><span class="swatch swatch-queued"></span>In queue</li>
+            <li><span class="swatch swatch-visited"></span>Visited</li>
+            <li><span class="swatch swatch-path"></span>Final path</li>
+          </ul>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <noscript>
+    <p class="noscript">Pathfinder needs JavaScript to run. Enable it in your browser and reload the page.</p>
+  </noscript>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

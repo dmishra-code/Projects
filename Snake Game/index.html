@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Neon Snake: a retro arcade Snake game built with vanilla HTML, CSS, and JavaScript.">
+  <meta name="theme-color" content="#0d1016">
+  <meta name="color-scheme" content="dark">
+  <title>Neon Snake</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%8D%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-phase="ready">
+  <main class="cabinet">
+    <header class="hud">
+      <h1 class="title">Snake</h1>
+      <dl class="scores">
+        <div class="stat stat-score">
+          <dt>Score</dt>
+          <dd id="score">0000</dd>
+        </div>
+        <div class="stat stat-best">
+          <dt>Best</dt>
+          <dd id="high-score">0000</dd>
+        </div>
+        <div class="stat stat-level">
+          <dt>Level</dt>
+          <dd id="level">1</dd>
+        </div>
+      </dl>
+    </header>
+
+    <section class="screen" id="screen" aria-label="Game board">
+      <canvas id="game" width="400" height="400" role="img" aria-label="Snake game board"></canvas>
+
+      <div class="overlay" id="overlay" data-state="ready" role="dialog" aria-modal="true" aria-labelledby="overlay-title" aria-hidden="true">
+        <div class="modal">
+          <h2 class="modal-title" id="overlay-title">Snake</h2>
+          <p class="message" id="overlay-message"></p>
+
+          <div class="result" id="overlay-result" hidden>
+            <div class="result-row"><span>Score</span><strong id="result-score">0000</strong></div>
+            <div class="result-row"><span>Best</span><strong id="result-best">0000</strong></div>
+            <p class="badge" id="result-badge" hidden>New high score</p>
+          </div>
+
+          <button type="button" class="btn" id="overlay-button">Start game</button>
+          <p class="hint" id="overlay-hint"></p>
+        </div>
+      </div>
+    </section>
+
+    <div class="dpad" role="group" aria-label="Touch controls">
+      <button type="button" class="dpad-btn" data-dir="up" aria-label="Move up">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 12H4z"/></svg>
+      </button>
+      <button type="button" class="dpad-btn" data-dir="left" aria-label="Move left">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 12H4z"/></svg>
+      </button>
+      <button type="button" class="dpad-btn" id="pause-btn" aria-label="Start">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+      </button>
+      <button type="button" class="dpad-btn" data-dir="right" aria-label="Move right">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 12H4z"/></svg>
+      </button>
+      <button type="button" class="dpad-btn" data-dir="down" aria-label="Move down">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 12H4z"/></svg>
+      </button>
+    </div>
+
+    <p class="help help-keys">
+      <span><kbd>Arrows</kbd> or <kbd>WASD</kbd> to move</span>
+      <span><kbd>Space</kbd> or <kbd>P</kbd> to pause</span>
+    </p>
+    <p class="help help-touch">Swipe on the board or use the buttons to steer.</p>
+
+    <p class="sr-only" id="status" aria-live="polite"></p>
+  </main>
+
+  <noscript>
+    <p class="noscript">Neon Snake needs JavaScript to run. Enable it in your browser and reload the page.</p>
+  </noscript>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

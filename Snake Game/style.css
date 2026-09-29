@@ -1,0 +1,482 @@
+/* ==========================================================================
+   Neon Snake — retro arcade theme
+   ========================================================================== */
+
+:root {
+  --bg: #0d1016;
+  --bg-glow: #151c28;
+  --panel: #171c26;
+  --panel-raised: #1f2634;
+  --line: #2b3446;
+  --text: #dbe4ee;
+  --muted: #8391a5;
+  --green: #39ff88;
+  --green-deep: #1c9c56;
+  --amber: #ffb020;
+  --danger: #ff5a72;
+  --board: #0a0d12;
+  --ink: #06120b;
+
+  --font: "Press Start 2P", ui-monospace, "SFMono-Regular", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  /* Vertical space kept free for the HUD and controls around the board. */
+  --reserved: 230px;
+  --size: max(240px, min(92vw, 440px, calc(100vh - var(--reserved))));
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --size: max(240px, min(92vw, 440px, calc(100dvh - var(--reserved))));
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  :root {
+    --reserved: 440px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background:
+    radial-gradient(ellipse at 50% 20%, var(--bg-glow) 0%, transparent 60%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---------- Layout ---------- */
+
+.cabinet {
+  width: var(--size);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(14px, 4.4vw, 20px);
+  font-weight: 400;
+  color: var(--green);
+  text-shadow: 0 0 14px rgba(57, 255, 136, 0.55);
+}
+
+.scores {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+}
+
+.stat {
+  text-align: right;
+}
+
+.stat dt {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.stat dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.stat-score dd {
+  color: var(--green);
+  text-shadow: 0 0 10px rgba(57, 255, 136, 0.45);
+  display: inline-block;
+}
+
+.stat-best dd {
+  color: var(--amber);
+  text-shadow: 0 0 10px rgba(255, 176, 32, 0.4);
+}
+
+.stat-score dd.bump {
+  animation: bump 0.22s ease-out;
+}
+
+/* ---------- Game screen ---------- */
+
+.screen {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border: 2px solid var(--green-deep);
+  border-radius: 12px;
+  background: var(--board);
+  overflow: hidden;
+  touch-action: none;
+  box-shadow:
+    0 0 0 1px rgba(57, 255, 136, 0.12),
+    0 0 28px rgba(57, 255, 136, 0.2),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.screen.shake {
+  animation: shake 0.36s ease-in-out;
+}
+
+.screen canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* CRT scanlines + vignette */
+.screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0.13) 3px
+    ),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+/* ---------- Overlay / modal ---------- */
+
+.overlay {
+  --accent: var(--green);
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: rgba(7, 9, 13, 0.8);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0s linear 0.18s;
+}
+
+.overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.18s ease;
+}
+
+.overlay[data-state="paused"],
+.overlay[data-state="win"] {
+  --accent: var(--amber);
+}
+
+.overlay[data-state="over"] {
+  --accent: var(--danger);
+}
+
+.modal {
+  width: min(100%, 320px);
+  padding: 20px 16px 16px;
+  text-align: center;
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 0 26px -6px var(--accent), 0 14px 30px rgba(0, 0, 0, 0.5);
+  transform: translateY(8px) scale(0.98);
+  transition: transform 0.2s ease;
+}
+
+.overlay.is-open .modal {
+  transform: none;
+}
+
+.modal-title {
+  margin: 0 0 12px;
+  font-size: clamp(16px, 5vw, 22px);
+  font-weight: 400;
+  color: var(--accent);
+  text-shadow: 0 0 16px var(--accent);
+}
+
+.message {
+  margin: 0 0 16px;
+  font-size: 10px;
+  line-height: 1.9;
+}
+
+.result {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 12px;
+  font-size: 11px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.result-row span {
+  color: var(--muted);
+}
+
+.result-row strong {
+  font-weight: 400;
+}
+
+.badge {
+  margin: 2px 0 0;
+  font-size: 10px;
+  color: var(--amber);
+  text-shadow: 0 0 10px rgba(255, 176, 32, 0.6);
+}
+
+.btn {
+  font: inherit;
+  font-size: 11px;
+  padding: 12px 18px;
+  color: var(--ink);
+  background: var(--accent);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45), 0 0 18px -2px var(--accent);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+}
+
+.btn:hover {
+  filter: brightness(1.1);
+}
+
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.45), 0 0 18px -2px var(--accent);
+}
+
+.btn:focus-visible,
+.dpad-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.hint {
+  margin: 14px 0 0;
+  font-size: 9px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+/* ---------- Help + touch controls ---------- */
+
+.help {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  font-size: 9px;
+  line-height: 1.9;
+  text-align: center;
+  color: var(--muted);
+}
+
+kbd {
+  font: inherit;
+  padding: 1px 5px;
+  color: var(--text);
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+}
+
+.help-touch {
+  display: none;
+}
+
+.dpad {
+  display: none;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 60px);
+  grid-template-areas:
+    ". up ."
+    "left pause right"
+    ". down .";
+  gap: 8px;
+  justify-content: center;
+}
+
+.dpad-btn {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--green);
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+  transition: background 0.08s ease, color 0.08s ease, transform 0.08s ease;
+}
+
+.dpad-btn:active {
+  color: var(--ink);
+  background: var(--green);
+  transform: translateY(2px);
+}
+
+.dpad-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.dpad-btn[data-dir="up"] {
+  grid-area: up;
+}
+
+.dpad-btn[data-dir="left"] {
+  grid-area: left;
+}
+
+.dpad-btn[data-dir="right"] {
+  grid-area: right;
+}
+
+.dpad-btn[data-dir="down"] {
+  grid-area: down;
+}
+
+.dpad-btn[data-dir="left"] svg {
+  transform: rotate(-90deg);
+}
+
+.dpad-btn[data-dir="right"] svg {
+  transform: rotate(90deg);
+}
+
+.dpad-btn[data-dir="down"] svg {
+  transform: rotate(180deg);
+}
+
+#pause-btn {
+  grid-area: pause;
+  color: var(--amber);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .dpad {
+    display: grid;
+  }
+
+  .help-keys {
+    display: none;
+  }
+
+  .help-touch {
+    display: block;
+  }
+}
+
+/* ---------- Utilities ---------- */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.noscript {
+  position: fixed;
+  inset: auto 16px 16px;
+  margin: 0;
+  padding: 12px;
+  font-size: 10px;
+  text-align: center;
+  color: var(--ink);
+  background: var(--amber);
+  border-radius: 8px;
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes bump {
+  40% {
+    transform: scale(1.25);
+  }
+}
+
+@keyframes shake {
+  20% {
+    transform: translate(-4px, 2px);
+  }
+  40% {
+    transform: translate(4px, -2px);
+  }
+  60% {
+    transform: translate(-3px, 1px);
+  }
+  80% {
+    transform: translate(3px, -1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+  }
+}
